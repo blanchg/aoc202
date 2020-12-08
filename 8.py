@@ -1,3 +1,6 @@
+import time;
+ms = time.time() * 1000
+
 x = [["jmp", +323],
 ["acc", +0],
 ["acc", -1],
@@ -685,4 +688,4 @@ while result[0] == False and linenum > 0:
     # reset
     x[lines[linenum]] = original
 
-print("End")
+print(f"End {time.time()*1000-ms}ms")
