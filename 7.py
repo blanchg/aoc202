@@ -1,3 +1,5 @@
+import time;
+ms = time.time() * 1000
 x = [
 "dark indigo bags contain 2 clear indigo bags.",
 "mirrored gold bags contain 2 pale blue bags, 1 dark violet bag.",
@@ -646,51 +648,56 @@ def parse(x):
         else:
             tree[d['parent1']] = None
 
-def paths(tree):
-    k = tree.keys()
-    inverted = collections.defaultdict(lambda: set())
-    for key in k:
-        children = tree[key]
-        if children:
-            for child in children:
-                inverted[child.colour].add(key)
+# def paths(tree):
+#     k = tree.keys()
+#     inverted = collections.defaultdict(lambda: set())
+#     for key in k:
+#         children = tree[key]
+#         if children:
+#             for child in children:
+#                 inverted[child.colour].add(key)
 
-    return inverted
+#     return inverted
 
-def traverse(remainder: set, inverted: collections.defaultdict):
-    used = set()
-    while remainder:
-        print("XXXXX", ",".join(remainder))
-        val = remainder.pop()
-        used.add(val)
-        path = inverted[val]
-        print(val, "<-", ",".join(path))
-        if path:
-            remainder.update(path - used)
-    return len(used) - 1
+# def traverse(remainder: set, inverted: collections.defaultdict):
+#     used = set()
+#     while remainder:
+#         #print("XXXXX", ",".join(remainder))
+#         val = remainder.pop()
+#         used.add(val)
+#         path = inverted[val]
+#         #print(val, "<-", ",".join(path))
+#         if path:
+#             remainder.update(path - used)
+#     return len(used) - 1
 
 
 def traversetree(remainder: list, tree: dict):
     count = 0
+    runs = 0
     while remainder:
-        #print("XXXXX", ",".join(remainder))
+        runs += 1
         val = remainder.pop()
         children = tree[val.colour]
-        #print(val, "<-", ",".join(children))
-        print(val.num, val.colour)
         if children:
             for c in children:
-                print("    ", c.num, c.colour)
-                count += c.num * val.num
-                remainder.append(Child(c.num * val.num, c.colour))
+                x = c.num * val.num
+                count += x
+                remainder.append(Child(x, c.colour))
+    print(runs)
     return count
 
 for rule in x:
     parse(rule)
-inverted = paths(tree)
-result = traverse(set(['shiny gold']), inverted)
-print("Part 1:", result)
+
+# inverted = paths(tree)
+# result = traverse(set(['shiny gold']), inverted)
+# print("Part 1:", result)
+# print(f"Took {time.time()*1000 - ms}ms")
+# ms = time.time() * 1000
 
 result = traversetree([Child(1, 'shiny gold')], tree)
 
 print("Part 2:", result)
+
+print(f"Took {time.time()*1000 - ms}ms")
