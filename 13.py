@@ -8,7 +8,7 @@ ebus = -1
 for bus in busses:
     if bus == 'x':
         continue
-    toa = (math.floor(arrive / bus) + 1) * bus
+    toa = math.ceil(arrive / bus) * bus
     print(f'{bus}: {toa}')
     if toa < earliest:
         earliest = toa
