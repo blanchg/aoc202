@@ -1,3 +1,6 @@
+import time
+ms = time.time() * 1000
+
 import math
 
 arrive = 1006726
@@ -32,15 +35,15 @@ print(only_busses)
 # Start with our initial bus value
 val = only_busses[0][0]
 i = 1
-for bus in only_busses:
+for (bus_val, bus_diff) in only_busses:
     print('i',i, 'val', val, bus)
     while True:
         # look for value plus offset that equals mod our bus value
-        if (val + bus[1]) % bus[0] == 0:
+        if (val + bus_diff) % bus_val == 0:
             break
         # add on previous increment this increments by our previous cadance
         val += i
-    i = i * bus[0]
+    i = i * bus_val
 print('Part2:',val)
 # while a[bus_counter + diff] == 'x':
 #     diff += 1
@@ -69,3 +72,5 @@ print('Part2:',val)
 #     mul += 1
 #     if mul % 100000 == 0:
 #         print(mul, val)
+
+print(f'Took {time.time()*1000 - ms}ms')
