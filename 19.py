@@ -127,38 +127,128 @@ def run1():
             count += 1
     return count
 
-def match(input: str, rules: dict, rule) -> (bool, str):
-    print('match', input, rule)
-    # rule = rules[rulenum]
+def match(m: str, inputstr: str, rules: dict, rule, level = 0, char = 0, states = []) -> (bool, str, int):
+    if char >= len(m):
+        print(m, inputstr, rule, level, char)
+        return (False, '', char)
     if isinstance(rule, str):
-        print('  str')
-        if input.startswith(rule):
-            print('  startswith', input, rule, 'out', input[1:])
-            return (True, input[1:])
+        if len(m) > char:
+            print('-|' * level,m[0:char] + '_' + m[char] + '_' + m[char+1:])
+        if inputstr == rule:
+            print(' |' * level,'match', inputstr[0],'=', rule)
+            return (True, '', char + len(rule))
+        elif len(inputstr) > 0 and inputstr[0] == rule:
+            print(' |' * level,'match', inputstr[0],'=', rule)
+            return (True, inputstr[len(rule):], char + len(rule))
         else:
-            print('  NOT startswith', input, rule)
-            return (False, input)
-    if isinstance(rule, int):
-        print('  int')
-        return match(input, rules, rules[rule])
+            print(' |' * level,'NOT match', inputstr[0] if len(inputstr) > 0 else '""','=', rule)
+            return (False, inputstr, char)
+    elif isinstance(rule, int):
+        print(' |' * level,'int',rule)
+        return match(m, inputstr, rules, rules[rule], level, char)
     elif isinstance(rule, list):
-        print('  list')
+        if len(rule) == 1:
+            return match(m, inputstr, rules, rule[0], level, char)
+        msg = ' |' * level + ' OR ' + str(rule)
+        print(msg)
+        # OR
         for r in rule:
-            (matched, output) = match(input, rules, r)
+            (matched, output, used) = match(m, inputstr, rules, r, (level + 1) if len(rule) > 1 else level, char)
+            if matched:
+                # TODO can't just use first matched... what if others match?
+                # if used == len(m):
+                    # print(msg, 'True', output)
+                    return (matched, output, used)
+                # else:
+                #     print(msg, 'short', output, used, len(m))
+        print(msg, 'False')
+        return (False, inputstr, char)
+    elif isinstance(rule, tuple):
+        if len(rule) == 1:
+            return match(m, inputstr, rules, rule[0], level, char)
+        msg = ' |' * level + ' AND ' + str(rule)
+        print(msg)
+
+        workingstr = inputstr[:]
+        # AND
+        for r in rule:
+            (matched, output, used) = match(m, workingstr, rules, r, (level + 1) if len(rule) > 1 else level, char)
             if not matched:
-                print('    NOT matched', output)
-                return (matched, output)
-            input = output
-    print('Got to end', len(input))
-    return (len(input) == 0, input)
+                print(msg, 'False')
+                return (False, inputstr, char)
+            char = used
+            workingstr = output
+        # print(msg, 'True', inputstr)
+        return (True, workingstr, char)
+    else:
+        print('unknown type', rule)
+    return (False, inputstr, char)
 
 def run2():
-    messages = ['b']
+    # messages = ['b', 'bbbb', 'bab', 'aaa', 'aab']
+    # messages = ['aaa']
+
+    rulesinput = {
+0: '8 11',
+1: '"a"',
+2: '1 24 | 14 4',
+3: '5 14 | 16 1',
+4: '1 1',
+5: '1 14 | 15 1',
+6: '14 14 | 1 14',
+7: '14 5 | 1 21',
+8: '42',
+9: '14 27 | 1 26',
+10: '23 14 | 28 1',
+11: '42 31',
+12: '24 14 | 19 1',
+13: '14 3 | 1 12',
+14: '"b"',
+15: '1 | 14',
+16: '15 1 | 14 14',
+17: '14 2 | 1 7',
+18: '15 15',
+19: '14 1 | 14 14',
+20: '14 14 | 1 15',
+21: '14 1 | 1 14',
+22: '14 14',
+23: '25 1 | 22 14',
+24: '14 1',
+25: '1 1 | 1 14',
+26: '14 22 | 1 20',
+27: '1 6 | 14 18',
+28: '16 1',
+31: '14 17 | 1 13',
+42: '9 14 | 10 1',
+    }
+    messages = [
+# 'abbbbbabbbaaaababbaabbbbabababbbabbbbbbabaaaa',
+# 'bbabbbbaabaabba',
+'babbbbaabbbbbabbbbbbaabaaabaaa',
+# 'aaabbbbbbaaaabaababaabababbabaaabbababababaaa',
+# 'bbbbbbbaaaabbbbaaabbabaaa',
+# 'bbbababbbbaaaaaaaabbababaaababaabab',
+# 'ababaaaaaabaaab',
+# 'ababaaaaabbbaba',
+# 'baabbaaaabbaaaababbaababb',
+# 'abbbbabbbbaaaababbbbbbaaaababb',
+# 'aaaaabbaabaaaaababaa',
+# 'aaaabbaaaabbaaa',
+# 'aaaabbaabbaaaaaaabbbabbbaaabbaabaaa',
+# 'babaaabbbaaabaababbaabababaaab',
+# 'aabbbbbaabbbaaaaaabbbbbababaaaaabbaaabba',
+    ]
+
+    # rulesinput[8] = '42 | 42 8'
+    # rulesinput[11] = '42 31 | 42 11 31'
+    rulesinput[8] = '42 | 42 42 | 42 42 42 | 42 42 42 42 | 42 42 42 42 42 | 42 42 42 42 42 42 | 42 42 42 42 42 42 42 | 42 42 42 42 42 42 42 42 | 42 42 42 42 42 42 42 42 42'
+    rulesinput[11] = '42 31 | 42 42 31 31 | 42 42 42 31 31 31 | 42 42 42 42 31 31 31 31 | 42 42 42 42 42 31 31 31 31 31 | 42 42 42 42 42 42 31 31 31 31 31 31 | 42 42 42 42 42 42 42 31 31 31 31 31 31 31'
+
     rules = {}
     for key, value in rulesinput.items():
         keyrules = []
         for s in value.split('|'):
-            keyrules.extend([r[1] if r[0] == '"' else int(r) for r in s.strip().split(' ')])
+            keyrules.append(tuple(r[1] if r[0] == '"' else int(r) for r in s.strip().split(' ')))
         rules[key] = keyrules
 
     # print(rules[0])
@@ -166,24 +256,28 @@ def run2():
     # print(rules[114])
 
     count = 0
+    matches = []
+    notmatches = []
     for m in messages:
-        (matched, output) = match(m, rules, rules[0])
+        # print(m)
+        (matched, output, used) = match(m, m[:], rules, rules[0], 0, 0)
         if matched:
             count += 1
-            continue
+            # print(m, 'matched', output, used)
+            matches.append(m)
+        else:
+            # print(m, 'not matched', output, used)
+            notmatches.append(m)
+        # print('----------------------------')
+
+    print(matches)
+    print('----------------------------')
+    print(notmatches)
     return count
 
 
 rulesinput = {
 0: '8 11',
-
-8: '11 9 | 12 12 | 11 11 11',
-9: '11 | 12',
-11: '"b"',
-12: '"a"',
-}
-rbb = {
-
 1: '52 114 | 130 29',
 2: '107 29 | 26 114',
 3: '29 68 | 114 20',
@@ -191,15 +285,10 @@ rbb = {
 5: '81 29 | 2 114',
 6: '132 114 | 79 29',
 7: '56 114 | 129 29',
-8: '42', # | 42 42 | 42 42 42 | 42 42 42 42 | 42 42 42 42 42 42',
-# 200: '202 | 203',
-# 201: '42',
-# 202: '42 42',
-# 203: '201 202 | 204',
-# 204: '202 202 | 205',
+8: '42',
 9: '29 125 | 114 63',
 10: '29 67 | 114 65',
-11: '42 31 | 42 42 31 31 | 42 42 42 31 31 31 | 42 42 42 42 31 31 31 31',
+11: '42 31',
 12: '121 29 | 128 114',
 13: '114 77 | 29 105',
 14: '21 21',
